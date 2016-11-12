@@ -7,6 +7,7 @@ namespace Main
 {
     using System.Collections.Generic;
     using System.Drawing;
+    using OpenTK.Input;
     using Shapes;
     using Shapes.Shaders;
 
@@ -48,11 +49,12 @@ namespace Main
             //setup projection this tutorial is for 3D ill make another about 2D
             ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, Width / (float)Height, 0.5f, 10000.0f);
 
-            camera = new Camera(new Vector2(0.5f, 0.5f), -2);
+            camera = new Camera(new Vector2(0.5f, 0.5f), currentZoom: -2);
 
             shader = ShaderFactory.GetShader();
-            buffers = new List<VertexFloatBuffer>();
-            buffers.Add(Triangle.GetTriangle());
+            buffers = new List<VertexFloatBuffer> { Triangle.GetTriangle(),
+                Triangle.GetTriangle(new ColoredVector2(0,0,Color.FromArgb(1,0,0)),new ColoredVector2(0,-1,Color.FromArgb(0,1,0)),new ColoredVector2(1,-1,Color.FromArgb(0,0,1)) )
+            };
             buffers.ForEach(x => x.Load());
         }
 
@@ -82,6 +84,24 @@ namespace Main
             GL.UseProgram(0);
 
             SwapBuffers();
+        }
+
+        protected override void Dispose(bool manual)
+        {
+            base.Dispose(manual);
+            buffers.ForEach(x => x.Dispose());
+        }
+
+        protected override void OnKeyDown(KeyboardKeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            //camera.Update();
+        }
+
+        protected override void OnMouseWheel(MouseWheelEventArgs e)
+        {
+            base.OnMouseWheel(e);
+            camera.Zoom(e.DeltaPrecise); 
         }
     }
 }

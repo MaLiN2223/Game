@@ -324,7 +324,7 @@
             vertex_data[vertex_position++] = b;
             vertex_data[vertex_position++] = a;
         }
-         
+
         public void AddVertex(float x, float y, Color color)
         {
             AddVertex(x, y, 0, color.R, color.G, color.B, color.A);
@@ -332,6 +332,10 @@
         public void AddVertex(Vector2 vector, Color color)
         {
             AddVertex(vector.X, vector.Y, 0, color.R, color.G, color.B, color.A);
+        }
+        public void AddVertex(ColoredVector2 vector)
+        {
+            AddVertex(vector.vector, vector.color);
         }
         public void AddVertex(float x, float y, float z, float u, float v)
         {

@@ -11,11 +11,27 @@
         private const float speed = 0.1f;
 
         public Vector2 position;
-        public float zoom;
-        public Camera(Vector2 position, float zoom)
+        private float _currentZoom;
+        public float currentZoom
+        {
+            get { return _currentZoom; }
+            set
+            {
+                float f = value;
+                if (f > maxZoom)
+                    _currentZoom = maxZoom;
+                else if (f <= minZoom)
+                    _currentZoom = minZoom;
+                else
+                    _currentZoom = f;
+            }
+        }
+        private const float minZoom = -10;
+        private const float maxZoom = -1;
+        public Camera(Vector2 position, float currentZoom)
         {
             this.position = position;
-            this.zoom = zoom;
+            this.currentZoom = currentZoom;
         }
 
         public void Update()
@@ -31,36 +47,27 @@
                     position.X += speed;
                 if (keyboard[Key.Left])
                     position.X -= speed;
-                if (keyboard[Key.KeypadPlus] || keyboard[Key.Plus])
-                    MoveUp();
-                if (keyboard[Key.KeypadMinus] || keyboard[Key.Minus])
-                    MoveDown();
             }
 
         }
-
-        private void MoveDown()
+        public void Zoom(float f)
         {
-
-            zoom -= speed;
-        }
-
-        private void MoveUp()
-        {
-            zoom += speed;
-        }
+            f /= 10;
+            currentZoom += f;
+            Console.WriteLine(currentZoom);
+        } 
 
         public void Transform()
         {
             Matrix4 matrix = Matrix4.Identity;
             matrix = Matrix4.Mult(matrix, Matrix4.CreateTranslation(position.X, position.Y, 0));
-            matrix = Matrix4.Mult(matrix, Matrix4.CreateScale(zoom, zoom, 1f));
+            matrix = Matrix4.Mult(matrix, Matrix4.CreateScale(currentZoom, currentZoom, 1f));
             GL.MultMatrix(ref matrix);
         }
 
         public Matrix4 GetModelviewMatrix()
         {
-            return Matrix4.CreateTranslation(0, 0, zoom);
+            return Matrix4.CreateTranslation(0, 0, currentZoom);
         }
 
         public Matrix4 GetView(Matrix4 ProjectionMatrix)
