@@ -1,64 +1,92 @@
 ﻿using System;
+using OpenTK;
+//this namespace allows us to use only OpenGL 4, with all deprecated items removed.
+using OpenTK.Graphics.OpenGL4;
 
 namespace Main
 {
-    using OpenTK;
-    using OpenTK.Graphics;
-    using OpenTK.Graphics.OpenGL;
-    using OpenTK.Input;
+    using System.Drawing;
     using Shapes;
+    using Shapes.Shaders;
 
-    internal class Game : GameWindow
+    internal partial class Game : GameWindow
     {
-        public Game()
-            : base(800, 600, GraphicsMode.Default, "OpenTK Quick Start Sample")
+        private Matrix4 ProjectionMatrix;
+        private Matrix4 WorldMatrix;
+        private Matrix4 ModelviewMatrix;
+
+        private Shader shader;
+        private VertexFloatBuffer buffer;
+        private Camera camera;
+        public Game(int width = 800, int height = 600)
+            : base(width, height,
+            OpenTK.Graphics.GraphicsMode.Default,
+            "Main window",
+            GameWindowFlags.Default,
+            DisplayDevice.Default,
+            4, 0, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible)
         {
-            VSync = VSyncMode.On;
+
         }
 
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
-            GL.Enable(EnableCap.DepthTest);
-        }
+            #region GL_VERSION
+            //this will return your version of opengl
+            int major, minor;
+            GL.GetInteger(GetPName.MajorVersion, out major);
+            GL.GetInteger(GetPName.MinorVersion, out minor);
+            Console.WriteLine("Major {0}\nMinor {1}", major, minor);
+            //you can also get your GLSL version, although not sure if it varies from the above
+            Console.WriteLine("GLSL {0}", GL.GetString(StringName.ShadingLanguageVersion));
+            #endregion
 
-        protected override void OnResize(EventArgs e)
-        {
-            base.OnResize(e);
+            // Background color
+            GL.ClearColor(Color.Black);
 
-            GL.Viewport(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
+            //setup projection this tutorial is for 3D ill make another about 2D
+            ProjectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, Width / (float)Height, 0.5f, 10000.0f);
 
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, Width / (float)Height, 1.0f, 64.0f);
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadMatrix(ref projection);
+            camera = new Camera(new Vector2(0.5f, 0.5f), -2);
+
+            shader = ShaderFactory.GetShader();
+
+            //setup the vertex buffer [vbo]
+            buffer = new VertexFloatBuffer(VertexFormat.XYZ_COLOR, 3);
+            //just a triangle with full r g b
+            buffer.AddVertex(0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f);
+            buffer.AddVertex(0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+            buffer.AddVertex(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+            buffer.IndexFromLength();
+            buffer.Load();
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
+            camera.Update();
 
-            if (Keyboard[Key.Escape])
-                Exit(); 
+            Matrix4 MVP_Matrix = camera.GetView(ProjectionMatrix);
 
-        } 
+            //send to shader
+            GL.UseProgram(shader.Program);
+            //will return -1 without use program
+            int mvp_matrix_location = GL.GetUniformLocation(shader.Program, "mvp_matrix");
+            GL.UniformMatrix4(mvp_matrix_location, false, ref MVP_Matrix);
+            GL.UseProgram(0);
+        }
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
-
+            GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            Matrix4 modelview = Matrix4.LookAt(new Vector3(0, 0, 5), Vector3.Zero, new Vector3(0, 1, 0));
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadMatrix(ref modelview);
-
-            var sq = new Square(1, new Vector3(1, 0, 0));
-            sq.Draw(-1, -1);
-            var sq2 = new Square(1, new Vector3(0, 1, 0));
-            sq2.Draw(0, 0);
-            var sq3 = new Square(0.5f, new Vector3(0, 0, 1));
-            sq3.Draw(0, -0.5f);
+            camera.Transform();
+            GL.UseProgram(shader.Program);
+            buffer.Bind(shader);
+            GL.UseProgram(0);
 
             SwapBuffers();
         }

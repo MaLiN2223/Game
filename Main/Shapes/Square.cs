@@ -6,25 +6,18 @@ using System.Threading.Tasks;
 
 namespace Shapes
 {
+    using System.Drawing;
     using OpenTK;
     using OpenTK.Graphics.OpenGL;
 
-    public class Square : Shape
+    public class Square : Quad
     {
         private float height;
-        private Vector3 color1, color2, color3, color4;
-        public Square(float height, Vector3 color)
+
+        public Square(float height, Color color)
         {
             this.height = height;
-            color1 = color2 = color3 = color4 = color;
-        }
-        public Square(float height, Vector3 color1, Vector3 color2, Vector3 color3, Vector3 color4)
-        {
-            this.height = height;
-            this.color4 = color4;
-            this.color3 = color3;
-            this.color2 = color2;
-            this.color1 = color1;
+            base.color = color;
         }
         /// <summary>
         /// Draw Square by left down corner
@@ -34,11 +27,19 @@ namespace Shapes
         public void Draw(float x, float y)
         {
             GL.Begin(PrimitiveType.Quads);
-            GL.Color3(color1); GL.Vertex3(new Vector3(x, y, 0));
-            GL.Color3(color2); GL.Vertex3(new Vector3(x, y + height, 0));
-            GL.Color3(color3); GL.Vertex3(new Vector3(x + height, y + height, 0));
-            GL.Color3(color4); GL.Vertex3(new Vector3(x + height, y, 0));
+            GL.Color3(color); GL.Vertex2(new Vector2(x, y));
+            GL.Vertex2(new Vector2(x, y + height));
+            GL.Vertex2(new Vector2(x + height, y + height));
+            GL.Vertex2(new Vector2(x + height, y));
             GL.End();
         }
+
+        protected override Vector2[] Vertices => new Vector2[]
+        {
+            new Vector2(0,0),
+            new Vector2(0,1),
+            new Vector2(1,0),
+            new Vector2(1,1),
+        };
     }
 }
