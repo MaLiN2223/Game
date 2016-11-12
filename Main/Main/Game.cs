@@ -5,6 +5,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Main
 {
+    using System.Collections.Generic;
     using System.Drawing;
     using Shapes;
     using Shapes.Shaders;
@@ -12,11 +13,9 @@ namespace Main
     internal partial class Game : GameWindow
     {
         private Matrix4 ProjectionMatrix;
-        private Matrix4 WorldMatrix;
-        private Matrix4 ModelviewMatrix;
 
         private Shader shader;
-        private VertexFloatBuffer buffer;
+        private List<VertexFloatBuffer> buffers;
         private Camera camera;
         public Game(int width = 800, int height = 600)
             : base(width, height,
@@ -52,15 +51,9 @@ namespace Main
             camera = new Camera(new Vector2(0.5f, 0.5f), -2);
 
             shader = ShaderFactory.GetShader();
-
-            //setup the vertex buffer [vbo]
-            buffer = new VertexFloatBuffer(VertexFormat.XYZ_COLOR, 3);
-            //just a triangle with full r g b
-            buffer.AddVertex(0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f);
-            buffer.AddVertex(0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f);
-            buffer.AddVertex(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f);
-            buffer.IndexFromLength();
-            buffer.Load();
+            buffers = new List<VertexFloatBuffer>();
+            buffers.Add(Triangle.GetTriangle());
+            buffers.ForEach(x => x.Load());
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
@@ -85,7 +78,7 @@ namespace Main
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             camera.Transform();
             GL.UseProgram(shader.Program);
-            buffer.Bind(shader);
+            buffers.ForEach(x => x.Bind(shader));
             GL.UseProgram(0);
 
             SwapBuffers();

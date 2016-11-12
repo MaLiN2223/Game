@@ -1,6 +1,8 @@
 ﻿namespace Shapes
 {
     using System;
+    using System.Drawing;
+    using OpenTK;
     using OpenTK.Graphics.OpenGL4;
     using Shaders;
 
@@ -309,7 +311,7 @@
             vertex_data[vertex_position++] = z;
         }
 
-        public void AddVertex(float x, float y, float z, float r, float g, float b, float a)
+        private void AddVertex(float x, float y, float z, float r, float g, float b, float a)
         {
             if (Format != VertexFormat.XYZ_COLOR)
                 throw new FormatException("vertex must be of the same format type as buffer");
@@ -322,7 +324,15 @@
             vertex_data[vertex_position++] = b;
             vertex_data[vertex_position++] = a;
         }
-
+         
+        public void AddVertex(float x, float y, Color color)
+        {
+            AddVertex(x, y, 0, color.R, color.G, color.B, color.A);
+        }
+        public void AddVertex(Vector2 vector, Color color)
+        {
+            AddVertex(vector.X, vector.Y, 0, color.R, color.G, color.B, color.A);
+        }
         public void AddVertex(float x, float y, float z, float u, float v)
         {
             if (Format != VertexFormat.XYZ_UV)

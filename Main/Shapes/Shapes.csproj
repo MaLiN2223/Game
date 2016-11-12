@@ -51,6 +51,7 @@
     <Compile Include="Shaders\ShaderFactory.cs" />
     <Compile Include="Shape.cs" />
     <Compile Include="Square.cs" />
+    <Compile Include="Triangle.cs" />
     <Compile Include="VertexFloatBuffer.cs" />
     <Compile Include="VertexFormat.cs" />
   </ItemGroup>
